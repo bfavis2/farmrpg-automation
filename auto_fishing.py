@@ -6,91 +6,84 @@ from selenium.common.exceptions import NoSuchElementException, ElementClickInter
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-driver = webdriver.Chrome()
-# driver.get('https://farmrpg.com/')
-driver.get('https://farmrpg.com/index.php#!/login.php')
-# driver.get('https://farmrpg.com/index.php#!/fish.php')
+class FarmRpgFisher():
 
-USERNAME = 'GoCheeto'
-PASSWORD = 'letbin64'
-FISHING_IDS = [4]
-FISHING_LENGTH = 60 # seconds
-CATCH_FISH_LENGTH = 2.5 # seconds
+    def __init__(self, sleep_spacer=.5):
+        self.driver = webdriver.Chrome()
+        self.sleep_spacer = sleep_spacer
 
+        self.CATCH_FISH_LENGTH = 2.2
+        self.FISHING_SPOT_COORDS = (11, 12, 13, 14, 21, 22, 23, 24, 31, 32, 33, 34)
 
-time.sleep(.5) 
+    def quit(self):
+        self.driver.quit()
 
-"""
-<a href="fish.php" data-view=".view-main" class="item-link close-panel">
-    <div class="item-content">
-        <div class="item-media"><img src="/img/items/pond_sm.png" class="itemimg">/div>
-        <div class="item-inner">
-            <div class="item-title">Go Fishing<br><span style="font-size: 11px">See what you can catch</span></div>
-        </div>
-    </div>
-</a>
-"""
-# login_link = driver.find_element(By.XPATH, f'//a[@href="login.php"]')
-# login_link.click()
+    def login(self, username: str, password: str):
+        self.driver.get('https://farmrpg.com/index.php#!/login.php')
 
-username_box = driver.find_element(By.NAME, 'username')
-username_box.clear()
-username_box.send_keys(USERNAME)
+        username_box = self.driver.find_element(By.NAME, 'username')
+        username_box.clear()
+        username_box.send_keys(username)
 
-pw_box = driver.find_element(By.NAME, 'password')
-pw_box.clear()
-pw_box.send_keys(PASSWORD)
+        pw_box = self.driver.find_element(By.NAME, 'password')
+        pw_box.clear()
+        pw_box.send_keys(password)
 
-pw_box.send_keys(Keys.RETURN)
+        pw_box.send_keys(Keys.RETURN)
 
-time.sleep(.5)
+        time.sleep(self.sleep_spacer)
 
-fishing_link = driver.find_element(By.XPATH, f'//a[@href="fish.php"]')
-fishing_link.click()
+    def navigate_to_fishing_spot_from_home(self, fishing_spot_id: int):
+        general_fishing_link = self.driver.find_element(By.XPATH, f'//a[@href="fish.php"]')
+        general_fishing_link.click()
 
-time.sleep(.5)
+        time.sleep(self.sleep_spacer)
 
-for fishing_id in FISHING_IDS:
-    fishing_link = driver.find_element(By.XPATH, f'//a[@href="fishing.php?id={fishing_id}"]')
-    fishing_link.click()
+        fishing_spot_link = self.driver.find_element(By.XPATH, f'//a[@href="fishing.php?id={fishing_spot_id}"]')
+        fishing_spot_link.click()
 
-    time.sleep(.5)
+    def fish(self, final_bait_count:int = 0):
+        fishing_start_time = time.time()
+        while True:
+            for coord in self.FISHING_SPOT_COORDS:
+                try:
+                    print(f'Searching f{coord}')
+                    fish = self.driver.find_element(By.XPATH, f'//img[@class="fish f{coord} catch"]')
+                    print(f'FOUND FISH at f{coord}')
+                    fish.click()
 
-    fishing_start_time = time.time()
-    while time.time() - fishing_start_time < FISHING_LENGTH:
-        for coord in (11, 12, 13, 14, 21, 22, 23, 24, 31, 32, 33, 34):
-            try:
-                print(f'Searching f{coord}')
-                fish = driver.find_element(By.XPATH, f'//img[@class="fish f{coord} catch"]')
-                print(f'FOUND FISH at f{coord}')
-                fish.click()
+                    self.click_on_moving_blue_dot()
 
-                time.sleep(.5)
-
-                # blue dot is 50x50 div and it lives on the very left
-                # surrounding box is 300x50
-                catch_start_time = time.time()
-                blue_dot = driver.find_element(By.XPATH, f'//div[@class="fc"]')
-                while time.time() - catch_start_time < CATCH_FISH_LENGTH:
+                except (NoSuchElementException, ElementClickInterceptedException):
+                    continue
                     
-                    try:
-                        # blue_dot = driver.find_element(By.XPATH, f'//div[@class="fishcaught finalcatch2b"]')
-                        print('clicking on blue dot')
-                        blue_dot.click()
-                        time.sleep(.1)
-                    except (NoSuchElementException, ElementNotInteractableException) as e:
-                        time.sleep(.1)
-                        print(e)
+            time.sleep(self.sleep_spacer)
+            
 
-            except (NoSuchElementException, ElementClickInterceptedException):
-                continue
+    def click_on_moving_blue_dot(self):
+        # blue dot is 50x50 div and it lives on the very left
+        # surrounding box is 300x50
+        catch_start_time = time.time()
+        blue_dot = self.driver.find_element(By.XPATH, f'//div[@class="fc"]')
+        while time.time() - catch_start_time < self.CATCH_FISH_LENGTH:
+            
+            try:
+                # blue_dot = driver.find_element(By.XPATH, f'//div[@class="fishcaught finalcatch2b"]')
+                blue_dot.click()
+            except (NoSuchElementException, ElementNotInteractableException) as e:
+                pass
 
-        time.sleep(1)
+            time.sleep(.1)
 
-time.sleep(5)
+if __name__ == '__main__':
+    USERNAME = 'GoCheeto'
+    PASSWORD = 'letbin64'
 
-driver.quit()
-
+    fisher = FarmRpgFisher()
+    fisher.login(USERNAME, PASSWORD)
+    fisher.navigate_to_fishing_spot_from_home(4)
+    fisher.fish()
+    
 '''
 Changes to when a fish is ready to catch:
 <img src="/img/items/fish.png" class="fish f21 catch" style="display: inline; opacity: 0.383787;">
