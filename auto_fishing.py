@@ -40,18 +40,18 @@ pw_box.send_keys(PASSWORD)
 
 pw_box.send_keys(Keys.RETURN)
 
-time.sleep(5)
+time.sleep(1)
 
 fishing_link = driver.find_element(By.XPATH, f'//a[@href="fish.php"]')
 fishing_link.click()
 
-time.sleep(5)
+time.sleep(1)
 
 for fishing_id in FISHING_IDS:
     fishing_link = driver.find_element(By.XPATH, f'//a[@href="fishing.php?id={fishing_id}"]')
     fishing_link.click()
 
-    time.sleep(5)
+    time.sleep(1)
 
     start_time = time.time()
     while time.time() - start_time < FISHING_LENGTH:
@@ -62,6 +62,7 @@ for fishing_id in FISHING_IDS:
             time.sleep(1)
         except NoSuchElementException:
             time.sleep(.2)
+            
 
 
 
