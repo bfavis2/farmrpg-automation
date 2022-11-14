@@ -1,4 +1,5 @@
 import time
+import secrets
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
@@ -15,10 +16,10 @@ class FarmRpgFisher():
         self.CATCH_FISH_LENGTH = 2.2
         self.FISHING_SPOT_COORDS = (11, 12, 13, 14, 21, 22, 23, 24, 31, 32, 33, 34)
 
-    def quit(self):
+    def quit(self) -> None:
         self.driver.quit()
 
-    def login(self, username: str, password: str):
+    def login(self, username: str, password: str) -> None:
         self.driver.get('https://farmrpg.com/index.php#!/login.php')
 
         username_box = self.driver.find_element(By.NAME, 'username')
@@ -33,7 +34,7 @@ class FarmRpgFisher():
 
         time.sleep(self.sleep_spacer)
 
-    def navigate_to_fishing_spot_from_home(self, fishing_spot_id: int):
+    def navigate_to_fishing_spot_from_home(self, fishing_spot_id: int) -> None:
         general_fishing_link = self.driver.find_element(By.XPATH, f'//a[@href="fish.php"]')
         general_fishing_link.click()
 
@@ -42,25 +43,24 @@ class FarmRpgFisher():
         fishing_spot_link = self.driver.find_element(By.XPATH, f'//a[@href="fishing.php?id={fishing_spot_id}"]')
         fishing_spot_link.click()
 
-    def fish(self, final_bait_count:int = 0):
+        time.sleep(self.sleep_spacer)
+
+    def fish(self, final_bait_count:int = 0) -> None:
         fishing_start_time = time.time()
-        while True:
-            for coord in self.FISHING_SPOT_COORDS:
-                try:
-                    print(f'Searching f{coord}')
-                    fish = self.driver.find_element(By.XPATH, f'//img[@class="fish f{coord} catch"]')
-                    print(f'FOUND FISH at f{coord}')
-                    fish.click()
+        while self._get_bait_amount_left > 0:
+            try:
+                fish = self.driver.find_element(By.XPATH, f'//img[contains(@class, "catch")]')
+                fish.click()
 
-                    self.click_on_moving_blue_dot()
+                self._click_on_moving_blue_dot()
 
-                except (NoSuchElementException, ElementClickInterceptedException):
-                    continue
+            except (NoSuchElementException, ElementClickInterceptedException):
+                continue
                     
-            time.sleep(self.sleep_spacer)
+            time.sleep(.1)
             
 
-    def click_on_moving_blue_dot(self):
+    def _click_on_moving_blue_dot(self) -> None:
         # blue dot is 50x50 div and it lives on the very left
         # surrounding box is 300x50
         catch_start_time = time.time()
@@ -75,15 +75,18 @@ class FarmRpgFisher():
 
             time.sleep(.1)
 
+    def _get_bait_amount_left(self) -> int:
+        return int(self.driver.find_element(By.XPATH, '//*[@id="baitarea"]/div[1]/div[1]/strong').text)
+
 if __name__ == '__main__':
-    USERNAME = 'GoCheeto'
-    PASSWORD = 'letbin64'
+    USERNAME = secrets.username
+    PASSWORD = secrets.password
 
     fisher = FarmRpgFisher()
     fisher.login(USERNAME, PASSWORD)
     fisher.navigate_to_fishing_spot_from_home(4)
     fisher.fish()
-    
+
 '''
 Changes to when a fish is ready to catch:
 <img src="/img/items/fish.png" class="fish f21 catch" style="display: inline; opacity: 0.383787;">
@@ -129,4 +132,27 @@ Changes to when a fish is ready to catch:
         </div>
     </div>
 </div>
+'''
+
+'''
+<div class="card-content-inner" style="padding:5px" id="baitarea"> 
+    <div class="row" style="margin-bottom: 0">
+        <div class="col-45" style="font-size:13px">
+            Worms: <strong>299</strong>
+            <a href="changebait.php?from=fishing&amp;id=4" style="font-size:11px">Swap</a>
+        </div>
+        <div class="col-55" style="font-size:13px">Streak: <strong>0</strong> &nbsp; Best: <strong>160</strong></div>
+    </div>
+    <div id="last_bait" style="display:none">Worms</div>
+</div>
+'''
+
+'''
+//*[@id="baitarea"]
+'''
+
+'''
+/html/body/div[3]/div[3]/div[2]/div[2]/div/div[1]/div[3]/div/div/div[1]/div[1]/strong
+
+//*[@id="baitarea"]/div[1]/div[1]/strong
 '''
