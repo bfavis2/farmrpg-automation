@@ -13,7 +13,7 @@ class FarmRpgFisher():
         self.driver = webdriver.Chrome()
         self.sleep_spacer = sleep_spacer
 
-        self.CATCH_FISH_LENGTH = 2.2
+        self.CATCH_FISH_LENGTH = 2.5
         self.FISHING_SPOT_COORDS = (11, 12, 13, 14, 21, 22, 23, 24, 31, 32, 33, 34)
 
     def quit(self) -> None:
@@ -47,7 +47,7 @@ class FarmRpgFisher():
 
     def fish(self, final_bait_count:int = 0) -> None:
         fishing_start_time = time.time()
-        while self._get_bait_amount_left > 0:
+        while self._get_bait_amount_left() > 0:
             try:
                 fish = self.driver.find_element(By.XPATH, f'//img[contains(@class, "catch")]')
                 fish.click()
@@ -57,7 +57,7 @@ class FarmRpgFisher():
             except (NoSuchElementException, ElementClickInterceptedException):
                 continue
                     
-            time.sleep(.1)
+            time.sleep(.03)
             
 
     def _click_on_moving_blue_dot(self) -> None:
@@ -73,10 +73,15 @@ class FarmRpgFisher():
             except (NoSuchElementException, ElementNotInteractableException) as e:
                 pass
 
-            time.sleep(.1)
+            time.sleep(.01)
 
     def _get_bait_amount_left(self) -> int:
-        return int(self.driver.find_element(By.XPATH, '//*[@id="baitarea"]/div[1]/div[1]/strong').text)
+        while True:
+            try:
+                text = self.driver.find_element(By.XPATH, '//*[@id="baitarea"]/div[1]/div[1]/strong').text
+                return int(text)
+            except:
+                continue
 
 if __name__ == '__main__':
     USERNAME = secrets.username
@@ -84,8 +89,10 @@ if __name__ == '__main__':
 
     fisher = FarmRpgFisher()
     fisher.login(USERNAME, PASSWORD)
-    fisher.navigate_to_fishing_spot_from_home(4)
+    fisher.navigate_to_fishing_spot_from_home(7)
+    # fisher.navigate_to_fishing_spot_from_home(8)
     fisher.fish()
+    fisher.quit()
 
 '''
 Changes to when a fish is ready to catch:
@@ -93,7 +100,7 @@ Changes to when a fish is ready to catch:
 
 
 <div id="fishinwater" style="position:relative;">
-    <div class="row no-gutter">
+    <div class="row no-gutter">S
         <div class="col-25 fishcell"><img src="/img/items/fish.png" class="fish f11" style="display: none;"></div>
         <div class="col-25 fishcell"><img src="/img/items/fish.png" class="fish f12" style="display: none;"></div>
         <div class="col-25 fishcell"><img src="/img/items/fish.png" class="fish f13" style="display: none;"></div>
