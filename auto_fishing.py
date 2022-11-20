@@ -3,13 +3,13 @@ import secrets
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException, ElementNotInteractableException
+from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException, ElementNotInteractableException, StaleElementReferenceException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 class FarmRpgFisher():
 
-    def __init__(self, sleep_spacer=.5):
+    def __init__(self, sleep_spacer=1):
         self.driver = webdriver.Chrome()
         self.sleep_spacer = sleep_spacer
 
@@ -54,10 +54,10 @@ class FarmRpgFisher():
 
                 self._click_on_moving_blue_dot()
 
-            except (NoSuchElementException, ElementClickInterceptedException):
+            except (NoSuchElementException, ElementClickInterceptedException, StaleElementReferenceException):
                 continue
                     
-            time.sleep(.03)
+            time.sleep(.1)
             
 
     def _click_on_moving_blue_dot(self) -> None:
